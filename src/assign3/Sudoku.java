@@ -1,11 +1,16 @@
 package assign3;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /*
  * Encapsulates a Sudoku grid to be solved.
  * CS108 Stanford.
  */
 public class Sudoku {
-	int[][] grid;
+	int[][] grid, result;
+	long startTime, endTime;
 
 	public class Spot {
 		int row;
@@ -17,32 +22,27 @@ public class Sudoku {
 			this.col = col;
 			value = grid[row][col];
 		}
-
-		public void set(int num){ grid[row][col] = num; }
-		public int get(){ return grid[row][col]; }
+		public void setValue(int num){ grid[row][col] = num; }
+		public int getValue(){ return grid[row][col]; }
 		public int getRow() { return row; }
 		public int getCol() { return col; }
-
 		public boolean noConflicts(int num){
 			return !usedInRow(num)
 					&& !usedInCol(num)
 					&& !usedInSquare(row - row % 3, col - col % 3, num);
 		}
-
 		private boolean usedInRow (int num){
 			for (int col = 0; col < SIZE; col++) {
 				if(grid[row][col] == num) return true;
 			}
 			return false;
 		}
-
 		private boolean usedInCol (int num){
 			for (int row = 0; row < SIZE; row++) {
 				if(grid[row][col] == num) return true;
 			}
 			return false;
 		}
-
 		private boolean usedInSquare(int boxStartRow, int boxStartCol, int num){
 			for (int row = 0; row < 3; row++) {
 				for (int col = 0; col < 3; col++) {
@@ -181,36 +181,91 @@ public class Sudoku {
 		System.out.println("elapsed:" + sudoku.getElapsed() + "ms");
 		System.out.println(sudoku.getSolutionText());
 	}
-	
-	
-	
+
 
 	/**
 	 * Sets up based on the given ints.
 	 */
 	public Sudoku(int[][] ints) {
+		startTime = 0;
+		endTime = 0;
 		grid = new int[SIZE][SIZE];
+		result = new int[SIZE][SIZE];
 		for (int i = 0; i < ints.length; i++) {
 			System.arraycopy(ints[i], 0, grid[i], 0, ints[0].length);
+			System.arraycopy(ints[i], 0, result[i], 0, ints[0].length);
 		}
 		// YOUR CODE HERE
 	}
-	
-	
 	
 	/**
 	 * Solves the puzzle, invoking the underlying recursive search.
 	 */
 	public int solve() {
-		return 0; // YOUR CODE HERE
-	}
-	
-	public String getSolutionText() {
-		return ""; // YOUR CODE HERE
-	}
-	
-	public long getElapsed() {
-		return 0; // YOUR CODE HERE
+		startTime = System.currentTimeMillis();
+		List<Spot> spots = new ArrayList<>();
+		for (int row = 0; row < SIZE; row++) {
+			for (int col = 0; col < SIZE; col++) {
+				if(grid[row][col] == 0) {
+					spots.add(new Spot(row, col));
+				}
+			}
+		}
+		int result = solveRec(spots, 0);
+		endTime = System.currentTimeMillis();
+		return result;
 	}
 
+	private int solveRec(List<Spot> list, int idx) {
+		if (idx >= list.size()){
+			copyArray(grid, result);
+			return 1;
+		}
+		int result = 0;
+		Spot current = list.get(idx);
+		for (int num = 1; num <= 9; num++) {
+			if(current.noConflicts(num)){
+				int initialVal = current.getValue();
+				current.setValue(num);
+				result += solveRec(list, idx + 1);
+				current.setValue(initialVal);
+				if (result >= MAX_SOLUTIONS) break;
+			}
+		}
+		return result;
+	}
+
+	private void copyArray(int[][] src, int[][] dst) {
+		for (int i = 0; i < src.length; i++) {
+			System.arraycopy(src[i], 0, dst[i], 0, src[i].length);
+		}
+	}
+
+	public String getSolutionText() {
+		System.out.println("This is the original puzzle: \n");
+		toString();
+		System.out.println("Time elapsed: " + (int)getElapsed());
+		System.out.println("Solution:  \n");
+		return gridToText(result);
+	}
+
+	private String gridToText(int[][] input){
+		StringBuilder result = new StringBuilder();
+		for (int row = 0; row < SIZE; row++) {
+			for (int col = 0; col < SIZE; col++) {
+				result.append(input[row][col]);
+				result.append(col == SIZE-1 ? "\n" : " ");
+			}
+		}
+		return result.toString();
+	}
+
+	public long getElapsed() {
+		return endTime - startTime;
+	}
+
+	@Override
+	public String toString() {
+		return gridToText(grid);
+	}
 }
