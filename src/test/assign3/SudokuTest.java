@@ -69,7 +69,7 @@ public class SudokuTest {
     public void testThatPuzzleIsSolved(){
         assertEquals(1, easy.solve());
         assertEquals(1, medium.solve());
-        assertEquals(1, hard.solve());
+        assertEquals(6, hard.solve());
         easy.getSolutionText();
     }
 

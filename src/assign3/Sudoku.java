@@ -1,7 +1,6 @@
 package assign3;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -9,40 +8,93 @@ import java.util.List;
  * CS108 Stanford.
  */
 public class Sudoku {
+	//grid is the original grid, result is the grid with the solution
 	int[][] grid, result;
+	// these ivars are needed so we can find out how much time did it take to
+	// find the solution.
 	long startTime, endTime;
 
+	/**
+	 * Spot represents a single spot on the board.
+	 */
 	public class Spot {
-		int row;
-		int col;
-		int value;
+		int row, col, value;
 
 		public Spot(int row, int col){
 			this.row = row;
 			this.col = col;
 			value = grid[row][col];
 		}
+
+		/**
+		 * Sets the value on the current spot.
+		 * @param num value that is to be set on the current spot.
+		 */
 		public void setValue(int num){ grid[row][col] = num; }
+
+		/**
+		 * Gets value from the current spot
+		 * @return value on the current spot.
+		 */
 		public int getValue(){ return grid[row][col]; }
+
+		/**
+		 * @return row of the spot
+		 */
 		public int getRow() { return row; }
+
+		/**
+		 * @return col of the spot
+		 */
 		public int getCol() { return col; }
+
+		/**
+		 * Checks if by setting the specified num at the current spot
+		 * will cause any conflicts.
+		 * @param num value which should be checked on the spot
+		 * @return returns true if there are no conflicts in row, col and square,
+		 * otherwise - returns false.
+		 */
 		public boolean noConflicts(int num){
 			return !usedInRow(num)
 					&& !usedInCol(num)
-					&& !usedInSquare(row - row % 3, col - col % 3, num);
+					&& !usedInSquare(row - row % PART, col - col % PART, num);
 		}
+
+		/**
+		 * Checks if there are any conflicts in the row with the specified number.
+		 * @param num number that needs to be checked against.
+		 * @return returns true if none of the values in the row equals the specified
+		 * number, otherwise - returns false.
+		 */
 		private boolean usedInRow (int num){
 			for (int col = 0; col < SIZE; col++) {
 				if(grid[row][col] == num) return true;
 			}
 			return false;
 		}
+
+		/**
+		 * Checks if there are any conflicts in the col with the specified number.
+		 * @param num number that needs to be checked against.
+		 * @return returns true if none of the values in the col equals the specified
+		 * number, otherwise - returns false.
+		 */
 		private boolean usedInCol (int num){
 			for (int row = 0; row < SIZE; row++) {
 				if(grid[row][col] == num) return true;
 			}
 			return false;
 		}
+
+		/**
+		 * Checks if there are any conflicts in the square with the specified number.
+		 * @param boxStartRow
+		 * @param boxStartCol
+		 * @param num number that needs to be checked against.
+		 * @return returns true if none of the values in the square equals
+		 * the specified number, otherwise - returns false.
+		 */
 		private boolean usedInSquare(int boxStartRow, int boxStartCol, int num){
 			for (int row = 0; row < 3; row++) {
 				for (int col = 0; col < 3; col++) {
@@ -54,9 +106,7 @@ public class Sudoku {
 			return false;
 		}
 	}
-	// Provided grid data for main/testing
-	// The instance variable strategy is up to you.
-	
+
 	// Provided easy 1 6 grid
 	// (can paste this text into the GUI too)
 	public static final int[][] easyGrid = Sudoku.stringsToGrid(
@@ -86,7 +136,7 @@ public class Sudoku {
 	// Provided hard 3 7 grid
 	// 1 solution this way, 6 solutions if the 7 is changed to 0
 	public static final int[][] hardGrid = Sudoku.stringsToGrid(
-	"3 7 0 0 0 0 0 8 0",
+	"3 0 0 0 0 0 0 8 0",
 	"0 0 1 0 9 3 0 0 0",
 	"0 4 0 7 8 0 0 0 3",
 	"0 9 3 8 0 0 0 1 2",
@@ -169,8 +219,6 @@ public class Sudoku {
 
 
 	// Provided -- the deliverable main().
-	// You can edit to do easier cases, but turn in
-	// solving hardGrid.
 	public static void main(String[] args) {
 		Sudoku sudoku;
 		sudoku = new Sudoku(hardGrid);
@@ -181,7 +229,6 @@ public class Sudoku {
 		System.out.println("elapsed:" + sudoku.getElapsed() + "ms");
 		System.out.println(sudoku.getSolutionText());
 	}
-
 
 	/**
 	 * Sets up based on the given ints.
@@ -195,14 +242,12 @@ public class Sudoku {
 			System.arraycopy(ints[i], 0, grid[i], 0, ints[0].length);
 			System.arraycopy(ints[i], 0, result[i], 0, ints[0].length);
 		}
-		// YOUR CODE HERE
 	}
 	
 	/**
 	 * Solves the puzzle, invoking the underlying recursive search.
 	 */
 	public int solve() {
-		startTime = System.currentTimeMillis();
 		List<Spot> spots = new ArrayList<>();
 		for (int row = 0; row < SIZE; row++) {
 			for (int col = 0; col < SIZE; col++) {
@@ -211,11 +256,18 @@ public class Sudoku {
 				}
 			}
 		}
+		startTime = System.currentTimeMillis();
 		int result = solveRec(spots, 0);
 		endTime = System.currentTimeMillis();
 		return result;
 	}
 
+	/**
+	 * recursive helper function to find the solution using backtracking.
+	 * @param list list of the unassigned spots.
+	 * @param idx index of the current spot in the list.
+	 * @return number of solutions.
+	 */
 	private int solveRec(List<Spot> list, int idx) {
 		if (idx >= list.size()){
 			copyArray(grid, result);
@@ -235,20 +287,29 @@ public class Sudoku {
 		return result;
 	}
 
+	/**
+	 * Utility function to copy 2-d arrays.
+	 * @param src source array
+	 * @param dst destination array
+	 */
 	private void copyArray(int[][] src, int[][] dst) {
 		for (int i = 0; i < src.length; i++) {
 			System.arraycopy(src[i], 0, dst[i], 0, src[i].length);
 		}
 	}
 
+	/**
+	 * @return solution as a string.
+	 */
 	public String getSolutionText() {
-		System.out.println("This is the original puzzle: \n");
-		toString();
-		System.out.println("Time elapsed: " + (int)getElapsed());
-		System.out.println("Solution:  \n");
 		return gridToText(result);
 	}
 
+	/**
+	 * Utility function to return solution as a string.
+	 * @param input grid which we want to turn into string
+	 * @return string representing the grid.
+	 */
 	private String gridToText(int[][] input){
 		StringBuilder result = new StringBuilder();
 		for (int row = 0; row < SIZE; row++) {
@@ -260,10 +321,16 @@ public class Sudoku {
 		return result.toString();
 	}
 
+	/**
+	 * @return the time elapsed while solving the puzzle.
+	 */
 	public long getElapsed() {
 		return endTime - startTime;
 	}
 
+	/**
+	 * @return the original grid, to which we don't make changes.
+	 */
 	@Override
 	public String toString() {
 		return gridToText(grid);
