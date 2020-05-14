@@ -1,12 +1,59 @@
 package assign3;
 
-import java.util.*;
-
 /*
  * Encapsulates a Sudoku grid to be solved.
  * CS108 Stanford.
  */
 public class Sudoku {
+	int[][] grid;
+
+	public class Spot {
+		int row;
+		int col;
+		int value;
+
+		public Spot(int row, int col){
+			this.row = row;
+			this.col = col;
+			value = grid[row][col];
+		}
+
+		public void set(int num){ grid[row][col] = num; }
+		public int get(){ return grid[row][col]; }
+		public int getRow() { return row; }
+		public int getCol() { return col; }
+
+		public boolean noConflicts(int num){
+			return !usedInRow(num)
+					&& !usedInCol(num)
+					&& !usedInSquare(row - row % 3, col - col % 3, num);
+		}
+
+		private boolean usedInRow (int num){
+			for (int col = 0; col < SIZE; col++) {
+				if(grid[row][col] == num) return true;
+			}
+			return false;
+		}
+
+		private boolean usedInCol (int num){
+			for (int row = 0; row < SIZE; row++) {
+				if(grid[row][col] == num) return true;
+			}
+			return false;
+		}
+
+		private boolean usedInSquare(int boxStartRow, int boxStartCol, int num){
+			for (int row = 0; row < 3; row++) {
+				for (int col = 0; col < 3; col++) {
+					if(grid[row + boxStartRow][col + boxStartCol] == num){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
 	// Provided grid data for main/testing
 	// The instance variable strategy is up to you.
 	
@@ -142,6 +189,10 @@ public class Sudoku {
 	 * Sets up based on the given ints.
 	 */
 	public Sudoku(int[][] ints) {
+		grid = new int[SIZE][SIZE];
+		for (int i = 0; i < ints.length; i++) {
+			System.arraycopy(ints[i], 0, grid[i], 0, ints[0].length);
+		}
 		// YOUR CODE HERE
 	}
 	
